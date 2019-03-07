@@ -17,11 +17,13 @@
 
 package org.apache.spark.graphx
 
+import org.apache.spark.internal.Logging
+
 /**
  * Represents the way edges are assigned to edge partitions based on their source and destination
  * vertex IDs.
  */
-trait PartitionStrategy extends Serializable {
+trait PartitionStrategy extends Serializable with Logging {
   /** Returns the partition number for a given edge. */
   def getPartition(src: VertexId, dst: VertexId, numParts: PartitionID): PartitionID
 }
@@ -112,7 +114,9 @@ object PartitionStrategy {
    */
   case object RandomVertexCut extends PartitionStrategy {
     override def getPartition(src: VertexId, dst: VertexId, numParts: PartitionID): PartitionID = {
-      math.abs((src, dst).hashCode()) % numParts
+      val value: PartitionID = math.abs((src, dst).hashCode()) % numParts
+      logInfo(f"src: $src%d dst: $dst%d nilai sekarang $value%d numparts: $numParts%d\n")
+      value
     }
   }
 
@@ -132,12 +136,23 @@ object PartitionStrategy {
     }
   }
 
+  /**
+   Use HDRF algorithm
+  */
+  case object HDRF extends PartitionStrategy {
+    override def getPartition(src: VertexId, dst: VertexId, numParts: PartitionID): PartitionID = {
+      logInfo("masuk sini gan")
+      0
+    }
+  }
+
   /** Returns the PartitionStrategy with the specified name. */
   def fromString(s: String): PartitionStrategy = s match {
     case "RandomVertexCut" => RandomVertexCut
     case "EdgePartition1D" => EdgePartition1D
     case "EdgePartition2D" => EdgePartition2D
     case "CanonicalRandomVertexCut" => CanonicalRandomVertexCut
+    case "HDRF" => HDRF
     case _ => throw new IllegalArgumentException("Invalid PartitionStrategy: " + s)
   }
 }
