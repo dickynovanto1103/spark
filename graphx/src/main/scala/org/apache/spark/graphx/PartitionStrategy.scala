@@ -17,6 +17,9 @@
 
 package org.apache.spark.graphx
 
+import org.apache.spark.SparkConf
+import org.apache.spark.SparkContext
+import org.apache.spark.SparkEnv
 import org.apache.spark.internal.Logging
 
 /**
@@ -32,6 +35,7 @@ trait PartitionStrategy extends Serializable with Logging {
  * Collection of built-in [[PartitionStrategy]] implementations.
  */
 object PartitionStrategy {
+  var tot = 0;
   /**
    * Assigns edges to partitions using a 2D partitioning of the sparse edge adjacency matrix,
    * guaranteeing a `2 * sqrt(numParts)` bound on vertex replication.
@@ -115,7 +119,7 @@ object PartitionStrategy {
   case object RandomVertexCut extends PartitionStrategy {
     override def getPartition(src: VertexId, dst: VertexId, numParts: PartitionID): PartitionID = {
       val value: PartitionID = math.abs((src, dst).hashCode()) % numParts
-      logInfo(f"src: $src%d dst: $dst%d nilai sekarang $value%d numparts: $numParts%d\n")
+      logInfo(f"src: $src%d dst: $dst%d nilai sekarang $value%d numparts: $numParts%d halo\n")
       value
     }
   }
@@ -141,8 +145,8 @@ object PartitionStrategy {
   */
   case object HDRF extends PartitionStrategy {
     override def getPartition(src: VertexId, dst: VertexId, numParts: PartitionID): PartitionID = {
-      logInfo("masuk sini gan")
-      0
+      logInfo(f"sekarang src: $src%d dst: $dst%d numParts: $numParts%d\n")
+      numParts
     }
   }
 

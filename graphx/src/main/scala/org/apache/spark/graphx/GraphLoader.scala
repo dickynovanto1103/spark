@@ -84,10 +84,15 @@ object GraphLoader extends Logging {
           }
           val srcId = lineArray(0).toLong
           val dstId = lineArray(1).toLong
+          var attr = -1;
+          if (lineArray.length > 2) {
+            attr = lineArray(2).toInt
+          }
+          logInfo(f"src: $srcId%d dst: $dstId%d attr: $attr%d\n")
           if (canonicalOrientation && srcId > dstId) {
-            builder.add(dstId, srcId, 1)
+            builder.add(dstId, srcId, attr)
           } else {
-            builder.add(srcId, dstId, 1)
+            builder.add(srcId, dstId, attr)
           }
         }
       }
