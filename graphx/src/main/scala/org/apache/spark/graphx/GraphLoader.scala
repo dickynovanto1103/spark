@@ -74,6 +74,7 @@ object GraphLoader extends Logging {
       } else {
         sc.textFile(path)
       }
+    logInfo("abis sc.textFile");
     val edges = lines.mapPartitionsWithIndex { (pid, iter) =>
       val builder = new EdgePartitionBuilder[Int, Int]
       iter.foreach { line =>
@@ -88,7 +89,7 @@ object GraphLoader extends Logging {
           if (lineArray.length > 2) {
             attr = lineArray(2).toInt
           }
-          logInfo(f"src: $srcId%d dst: $dstId%d attr: $attr%d\n")
+          // logInfo(f"src: $srcId%d dst: $dstId%d attr: $attr%d pid: $pid%d\n")
           if (canonicalOrientation && srcId > dstId) {
             builder.add(dstId, srcId, attr)
           } else {
@@ -98,7 +99,9 @@ object GraphLoader extends Logging {
       }
       Iterator((pid, builder.toEdgePartition))
     }.persist(edgeStorageLevel).setName("GraphLoader.edgeListFile - edges (%s)".format(path))
+    logInfo("sebelum job Count")
     edges.count()
+    logInfo("setelah job Count")
 
     logInfo(s"It took ${TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startTimeNs)} ms" +
       " to load the edges")

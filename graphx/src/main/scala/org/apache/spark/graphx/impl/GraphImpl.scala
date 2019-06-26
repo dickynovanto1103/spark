@@ -19,6 +19,8 @@ package org.apache.spark.graphx.impl
 
 import scala.reflect.{classTag, ClassTag}
 
+// import org.apache.log4j.{Level, Logger}
+
 import org.apache.spark.HashPartitioner
 import org.apache.spark.graphx._
 import org.apache.spark.graphx.util.BytecodeUtils
@@ -98,7 +100,9 @@ class GraphImpl[VD: ClassTag, ED: ClassTag] protected (
       partitionStrategy: PartitionStrategy, numPartitions: Int): Graph[VD, ED] = {
     val edTag = classTag[ED]
     val vdTag = classTag[VD]
-    val newEdges = edges.withPartitionsRDD(edges.map { e => {
+    // @transient lazy val logger = Logger.getLogger(getClass.getName)
+    // log.setLevel(Level.INFO)
+    @transient lazy val newEdges = edges.withPartitionsRDD(edges.map { e => {
       var nilai = e.attr.asInstanceOf[Int];
       if (nilai == -1) {
         nilai = numPartitions;
@@ -107,12 +111,16 @@ class GraphImpl[VD: ClassTag, ED: ClassTag] protected (
       (part, (e.srcId, e.dstId, nilai))
       }
     }
-      .partitionBy(new HashPartitioner(numPartitions))
+      // .partitionBy(new HashPartitioner(numPartitions))
       .mapPartitionsWithIndex( { (pid, iter) =>
         val builder = new EdgePartitionBuilder[ED, VD]()(edTag, vdTag)
         iter.foreach { message =>
           val data = message._2
           val attr = data._3.asInstanceOf[ED]
+          // val nilai1 = attr.asInstanceOf[Int]
+          // val src = data._1.asInstanceOf[Int]
+          // val dest = data._2.asInstanceOf[Int]
+          // logger.info("data: %d %d attr: %d\n".format(src, dest, nilai1))
           builder.add(data._1, data._2, attr)
         }
         val edgePartition = builder.toEdgePartition

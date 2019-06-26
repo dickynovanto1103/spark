@@ -356,7 +356,9 @@ object VertexRDD {
     val vid2pid = edges.partitionsRDD.mapPartitions(_.flatMap(
       Function.tupled(RoutingTablePartition.edgePartitionToMsgs)))
       .setName("VertexRDD.createRoutingTables - vid2pid (aggregation)")
-
+    // scalastyle:off println
+    println("vertexPartitioner:" + vertexPartitioner);
+    // scalastyle:on println
     val numEdgePartitions = edges.partitions.length
     vid2pid.partitionBy(vertexPartitioner).mapPartitions(
       iter => Iterator(RoutingTablePartition.fromMsgs(numEdgePartitions, iter)),

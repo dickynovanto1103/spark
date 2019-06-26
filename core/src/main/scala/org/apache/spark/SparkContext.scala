@@ -2312,7 +2312,7 @@ class SparkContext(config: SparkConf) extends Logging {
    * Notice that we use math.min so the "defaultMinPartitions" cannot be higher than 2.
    * The reasons for this are discussed in https://github.com/mesos/spark/pull/718
    */
-  def defaultMinPartitions: Int = math.min(defaultParallelism, 2)
+  def defaultMinPartitions: Int = math.min(defaultParallelism, 1)
 
   private val nextShuffleId = new AtomicInteger(0)
 

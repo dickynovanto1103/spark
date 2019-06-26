@@ -20,6 +20,7 @@ package org.apache.spark.graphx.lib
 import scala.reflect.ClassTag
 
 import org.apache.spark.graphx._
+import org.apache.spark.internal.Logging
 
 /**
  * Compute the number of triangles passing through each vertex.
@@ -49,15 +50,19 @@ import org.apache.spark.graphx._
  * }}}
  *
  */
-object TriangleCount {
+object TriangleCount extends Logging {
 
   def run[VD: ClassTag, ED: ClassTag](graph: Graph[VD, ED]): Graph[Int, ED] = {
+    logInfo("sebelum form canonical graph")
     // Transform the edge data something cheap to shuffle and then canonicalize
     val canonicalGraph = graph.mapEdges(e => true).removeSelfEdges().convertToCanonicalEdges()
+    logInfo("setelah form canonical graph, sebelum runPrecanonicalized")
     // Get the triangle counts
     val counters = runPreCanonicalized(canonicalGraph).vertices
+    logInfo("setelah run Precanonicalized, sebelum outer join vertices")
     // Join them bath with the original graph
     graph.outerJoinVertices(counters) { (vid, _, optCounter: Option[Int]) =>
+      logInfo("dalam outer join vertices")
       optCounter.getOrElse(0)
     }
   }

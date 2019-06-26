@@ -35,7 +35,6 @@ trait PartitionStrategy extends Serializable with Logging {
  * Collection of built-in [[PartitionStrategy]] implementations.
  */
 object PartitionStrategy {
-  var tot = 0;
   /**
    * Assigns edges to partitions using a 2D partitioning of the sparse edge adjacency matrix,
    * guaranteeing a `2 * sqrt(numParts)` bound on vertex replication.
@@ -119,7 +118,8 @@ object PartitionStrategy {
   case object RandomVertexCut extends PartitionStrategy {
     override def getPartition(src: VertexId, dst: VertexId, numParts: PartitionID): PartitionID = {
       val value: PartitionID = math.abs((src, dst).hashCode()) % numParts
-      logInfo(f"src: $src%d dst: $dst%d nilai sekarang $value%d numparts: $numParts%d halo\n")
+      // logInfo(f"src: $src%d dst: $dst%d nilai sekarang $value%d numparts: $numParts%d halo\n")
+      // logInfo("masuk RandomVertexCut");
       value
     }
   }
@@ -145,18 +145,19 @@ object PartitionStrategy {
   */
   case object HDRF extends PartitionStrategy {
     override def getPartition(src: VertexId, dst: VertexId, numParts: PartitionID): PartitionID = {
-      logInfo(f"sekarang src: $src%d dst: $dst%d numParts: $numParts%d\n")
+      // logInfo(f"sekarang src: $src%d dst: $dst%d numParts: $numParts%d\n")
+      // logInfo("masuk HDRF");
       numParts
     }
   }
 
   /** Returns the PartitionStrategy with the specified name. */
   def fromString(s: String): PartitionStrategy = s match {
-    case "RandomVertexCut" => RandomVertexCut
+    case "HDRF" => HDRF
     case "EdgePartition1D" => EdgePartition1D
     case "EdgePartition2D" => EdgePartition2D
     case "CanonicalRandomVertexCut" => CanonicalRandomVertexCut
-    case "HDRF" => HDRF
+    case "RandomVertexCut" => RandomVertexCut
     case _ => throw new IllegalArgumentException("Invalid PartitionStrategy: " + s)
   }
 }
