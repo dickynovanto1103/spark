@@ -51,15 +51,14 @@ import org.apache.spark.internal.Logging
  *
  */
 object TriangleCount extends Logging {
-
   def run[VD: ClassTag, ED: ClassTag](graph: Graph[VD, ED]): Graph[Int, ED] = {
-    logInfo("sebelum form canonical graph")
+    // logInfo("sebelum form canonical graph")
     // Transform the edge data something cheap to shuffle and then canonicalize
     val canonicalGraph = graph.mapEdges(e => true).removeSelfEdges().convertToCanonicalEdges()
-    logInfo("setelah form canonical graph, sebelum runPrecanonicalized")
+    // logInfo("setelah form canonical graph, sebelum runPrecanonicalized")
     // Get the triangle counts
     val counters = runPreCanonicalized(canonicalGraph).vertices
-    logInfo("setelah run Precanonicalized, sebelum outer join vertices")
+    // logInfo("setelah run Precanonicalized, sebelum outer join vertices")
     // Join them bath with the original graph
     graph.outerJoinVertices(counters) { (vid, _, optCounter: Option[Int]) =>
       logInfo("dalam outer join vertices")

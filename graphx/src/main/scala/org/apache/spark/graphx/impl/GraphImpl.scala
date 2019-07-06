@@ -24,6 +24,7 @@ import scala.reflect.{classTag, ClassTag}
 import org.apache.spark.HashPartitioner
 import org.apache.spark.graphx._
 import org.apache.spark.graphx.util.BytecodeUtils
+import org.apache.spark.internal.Logging
 import org.apache.spark.rdd.RDD
 import org.apache.spark.storage.StorageLevel
 
@@ -37,7 +38,7 @@ import org.apache.spark.storage.StorageLevel
 class GraphImpl[VD: ClassTag, ED: ClassTag] protected (
     @transient val vertices: VertexRDD[VD],
     @transient val replicatedVertexView: ReplicatedVertexView[VD, ED])
-  extends Graph[VD, ED] with Serializable {
+  extends Graph[VD, ED] with Serializable with Logging {
 
   /** Default constructor is provided to support serialization */
   protected def this() = this(null, null)
@@ -108,24 +109,35 @@ class GraphImpl[VD: ClassTag, ED: ClassTag] protected (
         nilai = numPartitions;
       }
       val part: PartitionID = partitionStrategy.getPartition(e.srcId, e.dstId, nilai)
+      val srcId = e.srcId.toInt
+      val dstId = e.dstId.toInt
+      logInfo(f"part: $part%d src: $srcId%d dest: $dstId%d nilai: $nilai%d")
       (part, (e.srcId, e.dstId, nilai))
       }
     }
-      // .partitionBy(new HashPartitioner(numPartitions))
+      .partitionBy(new HashPartitioner(numPartitions))
       .mapPartitionsWithIndex( { (pid, iter) =>
         val builder = new EdgePartitionBuilder[ED, VD]()(edTag, vdTag)
+        var cnt: Int = 0
+        logInfo(f"awal sebelum forEach cntPid: $pid%d")
         iter.foreach { message =>
           val data = message._2
+          val data1 = message._1.toInt
           val attr = data._3.asInstanceOf[ED]
-          // val nilai1 = attr.asInstanceOf[Int]
-          // val src = data._1.asInstanceOf[Int]
-          // val dest = data._2.asInstanceOf[Int]
-          // logger.info("data: %d %d attr: %d\n".format(src, dest, nilai1))
+          val src = data._1.toInt
+          val dest = data._2.toInt
+          val nilai = attr.asInstanceOf[Int]
+          assert(pid == data1)
+          cnt += 1
+          logInfo(f"data1: $data1%d src: $src%d dest: $dest%d attr: $nilai%d pid: $pid%d")
           builder.add(data._1, data._2, attr)
         }
+        logInfo(f"akhir setelah forEach cntPid: $pid%d")
+        logInfo(f"cnt: $cnt%d pid: $pid%d")
         val edgePartition = builder.toEdgePartition
         Iterator((pid, edgePartition))
       }, preservesPartitioning = true)).cache()
+    logInfo("setelah melakukan partisi, mau graphImpl.fromExistingRDDs")
     GraphImpl.fromExistingRDDs(vertices.withEdges(newEdges), newEdges)
   }
 
@@ -216,7 +228,6 @@ class GraphImpl[VD: ClassTag, ED: ClassTag] protected (
         replicatedVertexView
     }
     val activeDirectionOpt = activeSetOpt.map(_._2)
-
     // Map and combine.
     val preAgg = view.edges.partitionsRDD.mapPartitions(_.flatMap {
       case (pid, edgePartition) =>
@@ -252,7 +263,6 @@ class GraphImpl[VD: ClassTag, ED: ClassTag] protected (
               EdgeActiveness.Neither)
         }
     }).setName("GraphImpl.aggregateMessages - preAgg")
-
     // do the final reduction reusing the index map
     vertices.aggregateUsingIndex(preAgg, mergeMsg)
   }

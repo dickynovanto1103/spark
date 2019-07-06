@@ -118,8 +118,6 @@ object PartitionStrategy {
   case object RandomVertexCut extends PartitionStrategy {
     override def getPartition(src: VertexId, dst: VertexId, numParts: PartitionID): PartitionID = {
       val value: PartitionID = math.abs((src, dst).hashCode()) % numParts
-      // logInfo(f"src: $src%d dst: $dst%d nilai sekarang $value%d numparts: $numParts%d halo\n")
-      // logInfo("masuk RandomVertexCut");
       value
     }
   }
@@ -145,8 +143,6 @@ object PartitionStrategy {
   */
   case object HDRF extends PartitionStrategy {
     override def getPartition(src: VertexId, dst: VertexId, numParts: PartitionID): PartitionID = {
-      // logInfo(f"sekarang src: $src%d dst: $dst%d numParts: $numParts%d\n")
-      // logInfo("masuk HDRF");
       numParts
     }
   }

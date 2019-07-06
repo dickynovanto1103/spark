@@ -61,9 +61,6 @@ class ReplicatedVertexView[VD: ClassTag, ED: ClassTag](
   def upgrade(vertices: VertexRDD[VD], includeSrc: Boolean, includeDst: Boolean) {
     val shipSrc = includeSrc && !hasSrcId
     val shipDst = includeDst && !hasDstId
-    // scalastyle:off println
-    println("partitioner in upgrade:" + edges.partitioner.get);
-    // scalastyle:on println
     if (shipSrc || shipDst) {
       val shippedVerts: RDD[(Int, VertexAttributeBlock[VD])] =
         vertices.shipVertexAttributes(shipSrc, shipDst)

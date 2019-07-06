@@ -91,9 +91,9 @@ object GraphLoader extends Logging {
           }
           // logInfo(f"src: $srcId%d dst: $dstId%d attr: $attr%d pid: $pid%d\n")
           if (canonicalOrientation && srcId > dstId) {
-            builder.add(dstId, srcId, attr)
+            builder.add(dstId, srcId, attr.toInt)
           } else {
-            builder.add(srcId, dstId, attr)
+            builder.add(srcId, dstId, attr.toInt)
           }
         }
       }
